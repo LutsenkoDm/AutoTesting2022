@@ -9,12 +9,16 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.List;
 import java.util.function.Consumer;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 @DisplayName("Clients CRUD tests")
 public class ClientTest extends FunctionalTest {
@@ -47,6 +51,7 @@ public class ClientTest extends FunctionalTest {
 
     @Test
     @Tag("add")
+    @Timeout(10)
     public void addSimple() {
         assertTrue(clientsPage
                 .addClient(client)
@@ -56,6 +61,7 @@ public class ClientTest extends FunctionalTest {
 
     @Test
     @Tag("add")
+    @Timeout(25)
     public void addMultiple() {
         Client client2 = ClientDataProvider.getClientFromDataSet(0);
         Client client3 = ClientDataProvider.getRandomClientFromDataSet();
@@ -65,16 +71,41 @@ public class ClientTest extends FunctionalTest {
                 .addClient(client3)
                 .contains(List.of(client, client2, client3))
         );
+        List<Client> clients = clientsPage.all();
+        List<FIO> fios = clientsPage.fios();
+        assertAll(
+                () -> assertThat(clients).extracting("firstName", "lastname", "patherName")
+                        .contains(tuple(client.getFirstName(), client.getLastName(), client.getPatherName())),
+                () -> assertThat(clients).contains(client),
+                () -> assertThat(clients).contains(client2),
+                () -> assertThat(clients).contains(client3),
+                () -> assertThat(clients).contains(client, client2, client3),
+                () -> assertThat(fios).contains(new FIO(client)),
+                () -> assertThat(fios).contains(new FIO(client2)),
+                () -> assertThat(fios).contains(new FIO(client3)),
+                () -> assertThat(fios).extracting(FIO::getFirstName).contains(client.getFirstName()),
+                () -> assertThat(fios).extracting(FIO::getLastName).contains(client.getLastName()),
+                () -> assertThat(fios).extracting(FIO::getPatherName).contains(client.getPatherName()),
+                () -> assertThat(clients)
+                        .filteredOn(client -> client.getFirstName().equals(ClientDataProvider.clientsDataSet.get(0).getFirstName()))
+                        .contains(client2),
+                () -> assertThat(clients)
+                        .extracting(Client::getFirstName)
+                        .filteredOn(firstName -> firstName.equals(ClientDataProvider.clientsDataSet.get(0).getFirstName()))
+                        .contains(client2.getFirstName())
+        );
     }
 
     @Test
     @Tag("add")
+    @Timeout(10)
     public void addUsingStrategyTest1() {
         containsClientStrategy(clientsPage -> clientsPage.addClient(client), client);
     }
 
     @Test
     @Tag("add")
+    @Timeout(10)
     public void addUsingStrategyTest2() {
         containsClientStrategy(clientsPage ->
                         clientsPage
@@ -87,11 +118,12 @@ public class ClientTest extends FunctionalTest {
 
     @Test
     @Tag("add")
+    @Timeout(10)
     public void addUsingStrategyTest3() {
         containsClientStrategy(clientsPage ->
-                clientsPage
-                        .addClient(ClientDataProvider.generateNextClient())
-                        .updateClient(clientsPage.ids().getLast(), client),
+                        clientsPage
+                                .addClient(ClientDataProvider.generateNextClient())
+                                .updateClient(clientsPage.ids().getLast(), client),
                 client
         );
     }
@@ -104,6 +136,7 @@ public class ClientTest extends FunctionalTest {
 
     @Test
     @Tag("delete")
+    @Timeout(10)
     public void deleteLast() {
         assertFalse(clientsPage
                 .addClient(client)
@@ -114,6 +147,7 @@ public class ClientTest extends FunctionalTest {
 
     @Test
     @Tag("delete")
+    @Timeout(10)
     public void deleteInTheMiddle() {
         Client client2 = ClientDataProvider.getClientFromDataSet(1);
         Client client3 = ClientDataProvider.getRandomClientFromDataSet();
@@ -128,6 +162,7 @@ public class ClientTest extends FunctionalTest {
 
     @Test
     @Tag("update")
+    @Timeout(10)
     public void updateSimple() {
         Client client2 = ClientDataProvider.getClientFromDataSet(2);
         assertTrue(clientsPage
@@ -139,6 +174,7 @@ public class ClientTest extends FunctionalTest {
 
     @Test
     @Tag("scenario")
+    @Timeout(10)
     public void multiOps() {
         Client client2 = ClientDataProvider.generateNextClient();
         Client client3 = ClientDataProvider.generateNextClient();
@@ -161,8 +197,9 @@ public class ClientTest extends FunctionalTest {
     }
 
     private static class ClientDataProvider {
+
         private static int generateCounter = 0;
-        private static final List<Client> clientsDataSet = List.of(
+        public static final List<Client> clientsDataSet = List.of(
                 new Client("Alex", "Alexov", "ALexovich", "1111", "22334455"),
                 new Client("John", "Johnson", "Johnsovich", "2222", "9662052"),
                 new Client("Steve", "Stevov", "Stevovich", "3333", "82653662")

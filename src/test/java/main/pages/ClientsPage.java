@@ -112,6 +112,14 @@ public class ClientsPage extends PageObject {
         return this;
     }
 
+    public List<Client> all() {
+        return clientsTable.elements();
+    }
+
+    public List<FIO> fios() {
+        return clientsTable.FIOs();
+    }
+
     public boolean contains(Client client) {
         return clientsTable.elements().contains(client);
     }

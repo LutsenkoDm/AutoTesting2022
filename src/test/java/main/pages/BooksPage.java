@@ -108,6 +108,14 @@ public class BooksPage extends PageObject {
         return booksTable.elements().containsAll(books);
     }
 
+    public List<Book> all() {
+        return booksTable.elements();
+    }
+
+    public List<String> names() {
+        return booksTable.names();
+    }
+
     public boolean containsName(String name) {
         return booksTable.names().contains(name);
     }

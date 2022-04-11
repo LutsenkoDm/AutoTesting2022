@@ -98,6 +98,14 @@ public class BookTypesPage extends PageObject {
         return this;
     }
 
+    public List<BookType> all() {
+        return bookTypesTable.elements();
+    }
+
+    public List<String> names() {
+        return bookTypesTable.names();
+    }
+
     public boolean contains(BookType bookType) {
         return bookTypesTable.elements().contains(bookType);
     }

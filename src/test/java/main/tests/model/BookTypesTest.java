@@ -8,11 +8,14 @@ import org.junit.Test;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Timeout;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 @Disabled
 @DisplayName("Book types CRUD tests")
@@ -38,6 +41,7 @@ public class BookTypesTest extends FunctionalTest {
 
     @Test
     @Tag("add")
+    @Timeout(10)
     public void addSimpleOnlyNameCheck(){
         assertTrue(bookTypesPage
                 .addBookType(bookType1)
@@ -47,6 +51,7 @@ public class BookTypesTest extends FunctionalTest {
 
     @Test
     @Tag("add")
+    @Timeout(10)
     public void addMultipleOnlyNameCheck(){
         assertTrue(bookTypesPage
                 .addBookType(bookType1)
@@ -54,10 +59,22 @@ public class BookTypesTest extends FunctionalTest {
                 .addBookType(bookType3)
                 .containsNames(List.of(bookType1.getName(), bookType2.getName(), bookType3.getName()))
         );
+
+        List<BookType> bookTypes = bookTypesPage.all();
+        List<String> names = bookTypesPage.names();
+        assertAll(
+                () -> assertThat(bookTypes).contains(bookType1),
+                () -> assertThat(bookTypes).contains(bookType2),
+                () -> assertThat(bookTypes).contains(bookType3),
+                () -> assertThat(names).contains(bookType1.getName()),
+                () -> assertThat(names).contains(bookType2.getName()),
+                () -> assertThat(names).contains(bookType3.getName())
+        );
     }
 
     @Test
     @Tag("add")
+    @Timeout(10)
     public void addSimple(){
         assertTrue(bookTypesPage
                 .addBookType(bookType1)
@@ -67,6 +84,7 @@ public class BookTypesTest extends FunctionalTest {
 
     @Test
     @Tag("add")
+    @Timeout(10)
     public void addMultiple(){
         assertTrue(bookTypesPage
                 .addBookType(bookType1)
@@ -78,6 +96,7 @@ public class BookTypesTest extends FunctionalTest {
 
     @Test
     @Tag("delete")
+    @Timeout(10)
     public void delete(){
         assertFalse(bookTypesPage
                 .addBookType(bookType4)
@@ -88,6 +107,7 @@ public class BookTypesTest extends FunctionalTest {
 
     @Test
     @Tag("update")
+    @Timeout(10)
     public void updateSimple(){
         assertTrue(bookTypesPage
                 .addBookType(bookType5)

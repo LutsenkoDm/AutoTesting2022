@@ -1,5 +1,6 @@
 package main.tests.model;
 
+import main.entity.Book;
 import main.entity.BookType;
 import main.pages.BookTypesPage;
 import main.pages.BooksPage;
@@ -10,14 +11,18 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 @DisplayName("Books CRUD tests")
 public class BooksTest extends FunctionalTest {
@@ -59,6 +64,7 @@ public class BooksTest extends FunctionalTest {
 
     @Test
     @Tag("add")
+    @Timeout(10)
     public void addSimpleOnlyNameCheck() {
         assertTrue(booksPage
                 .addBook(bookWithType)
@@ -68,6 +74,7 @@ public class BooksTest extends FunctionalTest {
 
     @Test
     @Tag("add")
+    @Timeout(10)
     public void addSimple() {
         assertTrue(booksPage
                 .addBook(bookWithType)
@@ -77,19 +84,44 @@ public class BooksTest extends FunctionalTest {
 
     @Test
     @Tag("add")
+    @Timeout(25)
     public void addMultiple() {
-        BookWithType bookWithType2 = generateBookWithRandomType();
-        BookWithType bookWithType3 = generateBookWithRandomType();
+        BookWithType bookWithType2 = generateBookWithType(1);
+        BookWithType bookWithType3 = generateBookWithType(2);
         assertTrue(booksPage
                 .addBook(bookWithType)
                 .addBook(bookWithType2)
                 .addBook(bookWithType3)
                 .contains(List.of(bookWithType, bookWithType2, bookWithType3))
         );
+        List<Book> books = booksPage.all();
+        List<String> names = booksPage.names();
+        Book book1 = bookWithType.getBook();
+        Book book2 = bookWithType2.getBook();
+        Book book3 = bookWithType3.getBook();
+        assertAll(
+                () -> assertThat(books).extracting("name", "cnt", "typeId")
+                        .contains(tuple(book1.getName(),book1.getCnt(), book1.getTypeId())),
+                () -> assertThat(books).contains(book1),
+                () -> assertThat(books).contains(book2),
+                () -> assertThat(books).contains(book3),
+                () -> assertThat(names).contains(book1.getName()),
+                () -> assertThat(names).contains(book2.getName()),
+                () -> assertThat(names).contains(book3.getName()),
+                () -> assertThat(names).contains(book1.getName(), book2.getName(), book3.getName()),
+                () -> assertThat(bookWithType3).extracting(BookWithType::getBook).isEqualTo(books.get(books.size()-1)),
+                () -> assertThat(bookWithType2).extracting(BookWithType::getBook).isEqualTo(books.get(books.size()-2)),
+                () -> assertThat(bookWithType).extracting(BookWithType::getBook).isEqualTo(books.get(books.size()-3)),
+                () -> assertThat(books).filteredOn(book -> book.getTypeId().longValue() == bookTypes[1].getId())
+                        .contains(book2),
+                () -> assertThat(books).filteredOn(book -> book.getTypeId().longValue() == bookTypes[2].getId())
+                        .contains(book3)
+        );
     }
 
     @Test
     @Tag("delete")
+    @Timeout(10)
     public void deleteLast() {
         assertFalse(booksPage
                 .addBook(bookWithType)
@@ -100,6 +132,7 @@ public class BooksTest extends FunctionalTest {
 
     @Test
     @Tag("delete")
+    @Timeout(10)
     public void deleteInTheMiddle() {
         BookWithType bookWithType2 = generateBookWithRandomType();
         BookWithType bookWithType3 = generateBookWithRandomType();
@@ -114,6 +147,7 @@ public class BooksTest extends FunctionalTest {
 
     @Test
     @Tag("update")
+    @Timeout(10)
     public void updateSimple() {
         BookWithType updatedBookWithType = generateBookWithRandomType();
         assertTrue(booksPage
@@ -125,6 +159,7 @@ public class BooksTest extends FunctionalTest {
 
     @Test
     @Tag("scenario")
+    @Timeout(10)
     public void multiOps() {
         BookWithType bookWithType2 = generateBookWithRandomType();
         BookWithType bookWithType3 = generateBookWithRandomType();
@@ -147,6 +182,7 @@ public class BooksTest extends FunctionalTest {
     }
 
     @ParameterizedTest
+    @Timeout(20)
     @DisplayName("Add books with different bookTypes")
     @ValueSource(ints = {0, 1, 2}) //bookTypes indexes
     void addSimple(int number) {
